@@ -17,7 +17,7 @@ func CreateFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := config.Mongoconn.Database("berkemahquisioner").Collection("feedbacks")
+	collection := config.Mongoconn.Database("berkemah_quisioner").Collection("feedbacks")
 	_, err := collection.InsertOne(context.TODO(), feedback)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
