@@ -8,8 +8,10 @@ import (
 	"github.com/Berkemah-dev/be-quisioner/config"
 	"github.com/Berkemah-dev/be-quisioner/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// Fungsi untuk membuat feedback
 func CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	var feedback model.Feedback
 	if err := json.NewDecoder(r.Body).Decode(&feedback); err != nil {
@@ -17,20 +19,29 @@ func CreateFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := config.Mongoconn.Database("berkemah_quisioner").Collection("feedbacks")
+	collection := config.Mongoconn.Database("db_berkemah").Collection("feedbacks")
+	feedback.ID = primitive.NewObjectID() // Menghasilkan ID baru
 	_, err := collection.InsertOne(context.TODO(), feedback)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Membuat respons sukses
+	response := model.SuccessResponse{
+		Message:  "Feedback berhasil ditambahkan!",
+		Feedback: feedback,
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(feedback)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
+// Fungsi untuk mendapatkan semua feedback
 func GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	var feedbacks []model.Feedback
-	collection := config.Mongoconn.Database("berkemah_quisioner").Collection("feedbacks")
+	collection := config.Mongoconn.Database("db_berkemah").Collection("feedbacks")
 
 	cursor, err := collection.Find(context.TODO(), bson.D{})
 	if err != nil {
@@ -50,12 +61,4 @@ func GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(feedbacks)
-}
-
-func UpdateFeedback(w http.ResponseWriter, r *http.Request) {
-	// Logika untuk memperbarui feedback berdasarkan ID
-}
-
-func DeleteFeedback(w http.ResponseWriter, r *http.Request) {
-	// Logika untuk menghapus feedback berdasarkan ID
 }
